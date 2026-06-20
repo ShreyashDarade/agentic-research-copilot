@@ -1,12 +1,13 @@
 # DeepAgents Agentic-Research-Copilot
 
-This is not a basic chatbot. It is a AI engineering project that demonstrates:
+This is not a basic chatbot. It is AI engineering project that demonstrates:
 
 - **Agentic workflow orchestration** with `LangGraph`.
 - **RAG architecture** with chunking, embeddings, and vector retrieval.
 - **Source-grounded research** from URLs and PDFs.
 - **Claim verification** before report finalization.
 - **Human-in-the-loop approval** for safer AI output.
+- **DeepAgents harness integration** for planning, artifacts, subagents, context compression, and approval interrupts.
 - **FastAPI production API design** with typed request/response schemas.
 - **Minimal dashboard** for demos and recruiter walkthroughs.
 - **Postgres-ready persistence model** with SQLAlchemy and Alembic.
@@ -41,8 +42,6 @@ flowchart TD
     Graph --> LangSmith[LangSmith Tracing]
 ```
 
-
-
 ## Core Workflow
 
 1. User submits a research topic and optional source URLs.
@@ -57,12 +56,11 @@ flowchart TD
 
 ## Tech Stack
 
-
 | Area                | Technology                    |
 | ------------------- | ----------------------------- |
 | Language            | Python 3.12+                  |
 | API                 | FastAPI, Pydantic v2, Uvicorn |
-| Agent Runtime       | LangGraph                     |
+| Agent Runtime       | LangGraph, DeepAgents         |
 | LLM/RAG Framework   | LangChain                     |
 | Vector Database     | Qdrant                        |
 | Relational Database | Postgres                      |
@@ -74,13 +72,12 @@ flowchart TD
 | Packaging           | uv                            |
 | Local Infra         | Docker Compose                |
 
-
 ## Project Structure
 
 ```text
 .
 ├── app/
-│   ├── agents/          # LangGraph state, workflow nodes, prompts, DeepAgents adapter notes
+│   ├── agents/          # LangGraph state, workflow nodes, prompts, DeepAgents harness
 │   ├── api/             # FastAPI routes and API schemas
 │   ├── core/            # Settings, logging, observability
 │   ├── db/              # SQLAlchemy models, repositories, async sessions
@@ -135,6 +132,21 @@ awaiting_approval
 ```
 
 A human reviewer can approve or reject the draft from the dashboard or API.
+
+### DeepAgents Harness
+
+The project includes a concrete DeepAgents integration in `app/agents/deepagents_adapter.py`.
+
+Every research run is prepared with:
+
+- **Task planning**: a structured checklist for long-running research work.
+- **Virtual filesystem artifacts**: per-run files under `storage/artifacts/<run_id>/`.
+- **Subagent delegation**: specialist tasks for `source_analyst`, `claim_verifier`, and `report_writer`.
+- **Context compression**: retained evidence summaries with chunk IDs and source metadata.
+- **Human approval policy**: final report writing is configured as an interrupt-worthy action.
+- **Live runtime factory**: `create_runtime_agent()` calls `deepagents.create_deep_agent(...)` when model credentials are configured.
+
+The local demo path is deterministic so tests and dashboard demos run without paid API keys. In production, this adapter is the boundary where you enable the live DeepAgents runtime.
 
 ## Run Locally
 
@@ -370,7 +382,6 @@ uv run pytest -q
 
 ## Environment Variables
 
-
 | Variable             | Purpose                               | Default                                                          |
 | -------------------- | ------------------------------------- | ---------------------------------------------------------------- |
 | `DATABASE_URL`       | Async Postgres connection string      | `postgresql+asyncpg://research:research@localhost:5432/research` |
@@ -383,7 +394,6 @@ uv run pytest -q
 | `LANGSMITH_TRACING`  | Enable LangSmith tracing              | `false`                                                          |
 | `LANGSMITH_API_KEY`  | LangSmith API key                     | empty                                                            |
 | `LANGSMITH_PROJECT`  | LangSmith project name                | `agentic-research-assistant`                                     |
-
 
 ## Production Upgrade Path
 
