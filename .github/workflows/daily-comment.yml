@@ -1,0 +1,196 @@
+name: Daily Comment Refresh
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-comments:
+    name: Refresh Daily Comments
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refresh managed daily comments
+        run: |
+          python <<'PY'
+          from __future__ import annotations
+
+          import datetime as dt
+          import subprocess
+          from pathlib import Path
+
+          MARKER = "Daily update:"
+          TODAY = dt.date.today().isoformat()
+
+          WORKFLOW_DIR = Path(".github/workflows")
+
+          LINE_COMMENTS = {
+              ".py": "#",
+              ".pyi": "#",
+              ".sh": "#",
+              ".bash": "#",
+              ".zsh": "#",
+              ".ps1": "#",
+              ".yml": "#",
+              ".yaml": "#",
+              ".toml": "#",
+              ".ini": "#",
+              ".cfg": "#",
+              ".conf": "#",
+              ".env": "#",
+              ".gitignore": "#",
+              ".dockerignore": "#",
+              ".js": "//",
+              ".jsx": "//",
+              ".ts": "//",
+              ".tsx": "//",
+              ".java": "//",
+              ".c": "//",
+              ".h": "//",
+              ".cpp": "//",
+              ".hpp": "//",
+              ".cs": "//",
+              ".go": "//",
+              ".rs": "//",
+              ".sql": "--",
+              ".dockerfile": "#",
+          }
+
+          BLOCK_COMMENTS = {
+              ".md": ("<!--", "-->"),
+              ".html": ("<!--", "-->"),
+              ".htm": ("<!--", "-->"),
+              ".xml": ("<!--", "-->"),
+              ".css": ("/*", "*/"),
+              ".scss": ("/*", "*/"),
+              ".sass": ("/*", "*/"),
+          }
+
+          SPECIAL_NAMES = {
+              "Dockerfile": "#",
+              "Makefile": "#",
+          }
+
+          SKIP_NAMES = {
+              ".DS_Store",
+          }
+
+          def tracked_files() -> list[Path]:
+              output = subprocess.check_output(["git", "ls-files"], text=True)
+              return [Path(line) for line in output.splitlines() if line]
+
+          def comment_for(path: Path) -> str | None:
+              if path.name in SPECIAL_NAMES:
+                  return SPECIAL_NAMES[path.name]
+              if path.name.startswith(".env"):
+                  return "#"
+              if path.name in LINE_COMMENTS:
+                  return LINE_COMMENTS[path.name]
+              suffix = path.suffix.lower()
+              if suffix in LINE_COMMENTS:
+                  return LINE_COMMENTS[suffix]
+              if suffix in BLOCK_COMMENTS:
+                  start, end = BLOCK_COMMENTS[suffix]
+                  return f"{start} {MARKER} {TODAY} {end}"
+              return None
+
+          def managed_line_for(path: Path) -> str | None:
+              comment = comment_for(path)
+              if comment is None:
+                  return None
+              if comment.startswith(("<!--", "/*")):
+                  return comment
+              return f"{comment} {MARKER} {TODAY}"
+
+          def looks_binary(data: bytes) -> bool:
+              return b"\0" in data
+
+          def split_newline(text: str) -> tuple[list[str], str]:
+              newline = "\r\n" if "\r\n" in text else "\n"
+              return text.splitlines(), newline
+
+          def insertion_index(path: Path, lines: list[str]) -> int:
+              index = 0
+              if lines and lines[0].startswith("#!"):
+                  index = 1
+              if path.suffix.lower() in {".py", ".pyi"}:
+                  while index < min(len(lines), 2):
+                      stripped = lines[index].strip()
+                      if "coding:" in stripped or "coding=" in stripped:
+                          index += 1
+                          continue
+                      break
+              if path.suffix.lower() in {".html", ".htm"} and lines:
+                  if lines[0].lower().startswith("<!doctype"):
+                      index = max(index, 1)
+              if path.suffix.lower() == ".xml" and lines:
+                  if lines[0].startswith("<?xml"):
+                      index = max(index, 1)
+              return index
+
+          def refresh_file(path: Path) -> bool:
+              if path.is_relative_to(WORKFLOW_DIR) or path.name in SKIP_NAMES:
+                  return False
+
+              managed_line = managed_line_for(path)
+              if managed_line is None:
+                  print(f"Skipping unsupported comment style: {path}")
+                  return False
+
+              data = path.read_bytes()
+              if looks_binary(data):
+                  print(f"Skipping binary file: {path}")
+                  return False
+
+              try:
+                  text = data.decode("utf-8")
+              except UnicodeDecodeError:
+                  print(f"Skipping non-UTF-8 text file: {path}")
+                  return False
+
+              lines, newline = split_newline(text)
+              marker_index = next((i for i, line in enumerate(lines) if MARKER in line), None)
+              if marker_index is not None:
+                  if lines[marker_index] == managed_line:
+                      return False
+                  lines[marker_index] = managed_line
+              else:
+                  lines.insert(insertion_index(path, lines), managed_line)
+
+              trailing_newline = text.endswith(("\n", "\r\n"))
+              updated = newline.join(lines)
+              if trailing_newline or not updated:
+                  updated += newline
+              path.write_text(updated, encoding="utf-8", newline="")
+              print(f"Updated {path}")
+              return True
+
+          changed = 0
+          for file_path in tracked_files():
+              if file_path.exists() and refresh_file(file_path):
+                  changed += 1
+
+          print(f"Daily comment refresh changed {changed} file(s).")
+          PY
+
+      - name: Commit daily comment refresh
+        run: |
+          if git diff --quiet; then
+            echo "No daily comment changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Daily repository refresh $(date -u +%F)"
+          git push
