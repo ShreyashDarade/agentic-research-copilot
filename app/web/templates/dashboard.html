@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Research Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">LangGraph + RAG + Human Approval</p>
+        <h1>Agentic Research Assistant</h1>
+        <p>
+          Research a topic, collect evidence, verify claims, and pause for human review before
+          producing a final cited report.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Start a Research Run</h2>
+        <form method="post" action="/dashboard/research-runs" class="form">
+          <label>
+            Topic
+            <input name="topic" required minlength="3" placeholder="AI agents in production SRE" />
+          </label>
+          <label>
+            Source URLs, one per line
+            <textarea name="source_urls" rows="4" placeholder="https://example.com/report"></textarea>
+          </label>
+          <label>
+            Constraints
+            <textarea name="constraints" rows="3" placeholder="Focus on architecture and evaluation"></textarea>
+          </label>
+          <button type="submit">Run Research Workflow</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Runs</h2>
+        {% if runs %}
+          <div class="runs">
+            {% for run in runs %}
+              <a class="run-card" href="/runs/{{ run.run_id }}">
+                <strong>{{ run.topic }}</strong>
+                <span>{{ run.status }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p>No runs yet. Create one to see the approval flow.</p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

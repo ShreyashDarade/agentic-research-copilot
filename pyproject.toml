@@ -1,0 +1,72 @@
+[project]
+name = "agentic-research-assistant"
+version = "0.1.0"
+description = "Production-style agentic research assistant with LangGraph, RAG, claim verification, and human approval."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic",
+    "asyncpg",
+    "beautifulsoup4",
+    "deepagents",
+    "fastapi[standard]",
+    "greenlet",
+    "httpx",
+    "jinja2",
+    "langchain",
+    "langchain-community",
+    "langchain-core",
+    "langchain-openai",
+    "langgraph",
+    "langsmith",
+    "pydantic-settings",
+    "pypdf",
+    "python-multipart",
+    "qdrant-client",
+    "sqlalchemy[asyncio]",
+    "structlog",
+    "uvicorn[standard]",
+]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "respx",
+    "ruff",
+]
+
+[project.scripts]
+agentic-research-api = "app.main:main"
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
+ignore = [
+    "S101",
+    "S104",
+]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+exclude = ["alembic/"]

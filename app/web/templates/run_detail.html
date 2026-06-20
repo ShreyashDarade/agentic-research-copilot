@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ run.topic }} - Agentic Research Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <a href="/" class="back-link">Back to dashboard</a>
+      <section class="hero compact">
+        <p class="eyebrow">{{ run.status }}</p>
+        <h1>{{ run.topic }}</h1>
+      </section>
+
+      {% if run.approval_request %}
+        <section class="panel approval">
+          <h2>Human Approval Required</h2>
+          <p>{{ run.approval_request.message }}</p>
+          <form method="post" action="/dashboard/research-runs/{{ run.run_id }}/approval" class="inline">
+            <input type="hidden" name="approved" value="true" />
+            <button type="submit">Approve Final Report</button>
+          </form>
+          <form method="post" action="/dashboard/research-runs/{{ run.run_id }}/approval" class="inline">
+            <input type="hidden" name="approved" value="false" />
+            <input name="notes" placeholder="Reason for rejection" />
+            <button type="submit" class="secondary">Reject</button>
+          </form>
+        </section>
+      {% endif %}
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Claims</h2>
+          {% for claim in run.claims %}
+            <div class="claim">
+              <strong>{{ claim.status }}</strong>
+              <p>{{ claim.text }}</p>
+            </div>
+          {% endfor %}
+        </article>
+
+        <article class="panel">
+          <h2>Sources</h2>
+          {% for source in run.sources %}
+            <div class="source">
+              <strong>{{ source.title }}</strong>
+              {% if source.url %}<p>{{ source.url }}</p>{% endif %}
+              <small>score {{ "%.2f"|format(source.score) }}</small>
+            </div>
+          {% endfor %}
+        </article>
+      </section>
+
+      {% if run.deepagents_plan %}
+        <section class="panel">
+          <h2>DeepAgents Harness</h2>
+          <div class="grid compact-grid">
+            <div>
+              <h3>Subagents</h3>
+              {% for subagent in run.deepagents_plan.subagents %}
+                <div class="source">
+                  <strong>{{ subagent.role }}</strong>
+                  <p>{{ subagent.goal }}</p>
+                  <small>{{ subagent.handoff_contract }}</small>
+                </div>
+              {% endfor %}
+            </div>
+            <div>
+              <h3>Virtual Filesystem Artifacts</h3>
+              {% for name, path in run.deepagents_plan.artifact_paths.items() %}
+                <div class="source">
+                  <strong>{{ name }}</strong>
+                  <small>{{ path }}</small>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <h3>Compressed Context</h3>
+          <pre class="report">{{ run.deepagents_plan.compressed_context }}</pre>
+        </section>
+      {% endif %}
+
+      <section class="panel">
+        <h2>{% if run.final_report %}Final Report{% else %}Draft Report{% endif %}</h2>
+        <pre class="report">{{ run.final_report or run.draft_report }}</pre>
+      </section>
+    </main>
+  </body>
+</html>
