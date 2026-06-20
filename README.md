@@ -1,6 +1,6 @@
 # DeepAgents Agentic-Research-Copilot
 
-This is not a basic chatbot. It is a resume-focused AI engineering project that demonstrates:
+This is not a basic chatbot. It is a AI engineering project that demonstrates:
 
 - **Agentic workflow orchestration** with `LangGraph`.
 - **RAG architecture** with chunking, embeddings, and vector retrieval.
