@@ -1,4 +1,4 @@
-# Daily update: 2026-06-24
+# Daily update: 2026-06-25
 from pathlib import Path
 
 from app.agents.deepagents_adapter import DeepAgentsResearchHarness
