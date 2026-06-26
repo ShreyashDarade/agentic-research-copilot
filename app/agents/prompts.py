@@ -1,4 +1,4 @@
-# Daily update: 2026-06-25
+# Daily update: 2026-06-26
 PLANNER_SYSTEM_PROMPT = """You are a production research planner.
 Break the topic into verifiable research questions and prefer sources with clear provenance."""
 
