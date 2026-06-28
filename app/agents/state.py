@@ -1,4 +1,4 @@
-# Daily update: 2026-06-27
+# Daily update: 2026-06-28
 from typing import TypedDict
 
 from app.rag.schemas import RetrievedChunk
