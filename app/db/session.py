@@ -1,4 +1,4 @@
-# Daily update: 2026-06-28
+# Daily update: 2026-06-29
 from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import (

@@ -1,2 +1,2 @@
-# Daily update: 2026-06-28
+# Daily update: 2026-06-29
 """Core application infrastructure."""
