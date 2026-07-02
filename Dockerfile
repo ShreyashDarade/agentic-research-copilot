@@ -1,4 +1,4 @@
-# Daily update: 2026-07-01
+# Daily update: 2026-07-02
 FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
