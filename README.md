@@ -1,4 +1,4 @@
-<!-- Daily update: 2026-08-16 -->
+<!-- Daily update: 2026-08-17 -->
 # DeepAgents Agentic-Research-Copilot
 
 This is not a basic chatbot. It is AI engineering project that demonstrates:
