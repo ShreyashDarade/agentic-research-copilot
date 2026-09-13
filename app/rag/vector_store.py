@@ -1,4 +1,4 @@
-# Daily update: 2026-09-12
+# Daily update: 2026-09-13
 from collections.abc import Sequence
 from typing import Protocol
 
