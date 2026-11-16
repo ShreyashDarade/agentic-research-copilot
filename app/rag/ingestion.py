@@ -1,4 +1,4 @@
-# Daily update: 2026-11-15
+# Daily update: 2026-11-16
 from collections.abc import Sequence
 
 from app.rag.chunking import chunk_text
