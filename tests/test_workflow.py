@@ -1,4 +1,4 @@
-# Daily update: 2026-11-25
+# Daily update: 2026-11-26
 import pytest
 
 from app.agents.state import ResearchRunState
