@@ -1,4 +1,4 @@
-# Daily update: 2026-11-26
+# Daily update: 2026-11-27
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypedDict
