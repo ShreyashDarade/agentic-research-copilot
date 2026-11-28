@@ -1,4 +1,4 @@
-# Daily update: 2026-11-27
+# Daily update: 2026-11-28
 from app.rag.chunking import chunk_text
 from app.rag.embeddings import HashEmbeddingModel
 
